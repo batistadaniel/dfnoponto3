@@ -31,7 +31,7 @@
     border-radius: 16px;
   }
 
-  /* === PAINEL INFORMATIVO (TOPO) === */
+  /* === PAINEL INFORMATIVO === */
   .info-panel {
     top: 15px;
     left: 50%;
@@ -54,9 +54,6 @@
     font-size: 18px;
     font-weight: 800;
     color: var(--text-dark);
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
 
   .update-bubble {
@@ -90,7 +87,7 @@
   .dot.green { background: #22c55e; box-shadow: 0 0 8px #22c55e80;}
   .dot.red { background: #ef4444; }
 
-  /* === BARRA DE BUSCA === */
+  /* === BUSCA === */
   .search-wrapper {
     top: 100px;
     left: 50%;
@@ -157,7 +154,7 @@
     gap: 4px;
   }
 
-  /* === FILTROS (Sanfona no Rodapé) === */
+  /* === FILTROS === */
   .filtro-container {
     bottom: 30px;
     right: 15px;
@@ -168,58 +165,23 @@
     display: flex;
     flex-direction: column;
   }
-  
-  .filtro-container.open {
-    width: 200px;
-    height: auto;
-    padding: 15px;
-    bottom: 90px;
-  }
-
+  .filtro-container.open { width: 200px; height: auto; padding: 15px; bottom: 90px; }
   .filtro-toggle {
-    width: 100%;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 2;
-    background: var(--surface);
+    width: 100%; height: 48px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: absolute; top: 0; right: 0; z-index: 2; background: var(--surface);
   }
-  
-  .filtro-content {
-    margin-top: 40px;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
+  .filtro-content { margin-top: 40px; opacity: 0; transition: opacity 0.2s; }
   .filtro-container.open .filtro-content { opacity: 1; }
-
   .filtro-container label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #334155;
-    cursor: pointer;
-    font-weight: 500;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    font-size: 13px; color: #334155; cursor: pointer; font-weight: 500;
   }
   .filtro-container input { accent-color: var(--primary); transform: scale(1.1); }
 
-  /* === BOTÃO GPS (Meu Local) === */
+  /* === BOTÃO GPS === */
   .btn-gps {
-    bottom: 90px;
-    right: 15px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    bottom: 90px; right: 15px; width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
     transition: transform 0.2s;
   }
   .btn-gps svg { width: 24px; height: 24px; fill: #334155; }
@@ -227,71 +189,33 @@
 
   /* === MARCADORES === */
   .line-label {
-    display:inline-block;
-    white-space: nowrap;
-    cursor: pointer;
-    font-weight:700;
-    text-align:center;
-    line-height:1.1;
-    padding:2px 5px;
-    border:2px solid #1e293b;
-    font-size:12px;
-    border-radius:8px;
-    color: #1e293b;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    display:inline-block; white-space: nowrap; cursor: pointer; font-weight:700;
+    text-align:center; line-height:1.1; padding:2px 5px;
+    border:2px solid #1e293b; font-size:12px; border-radius:8px;
+    color: #1e293b; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     background: rgba(255,255,255,0.9);
   }
 
-  /* === POPUP CSS CORRIGIDO === */
-  .leaflet-popup-content-wrapper {
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    padding: 0;
-    overflow: hidden;
-  }
+  /* === POPUP === */
+  .leaflet-popup-content-wrapper { border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 0; overflow: hidden; }
+  .leaflet-popup-content { margin: 15px; line-height: 1.4; }
   
-  /* Restaura padding padrão para popups genéricos (como o de localização) */
-  .leaflet-popup-content {
-      margin: 15px;
-      line-height: 1.4;
-  }
-
-  /* Estilos específicos para o popup customizado de ônibus */
-  .custom-popup { 
-      color: var(--text-dark);
-      width: 220px; /* Largura fixa apenas para o popup de ônibus */
-      margin: -15px; /* Anula a margem padrão do leaflet para este popup específico */
-  }
-  .popup-header {
-    text-align: center; font-size: 17px; font-weight: 800; padding: 14px 0 10px 0; letter-spacing: -0.5px;
-  }
+  /* Popup Customizado do Ônibus */
+  .custom-popup { color: var(--text-dark); width: 220px; margin: -15px; }
+  .popup-header { text-align: center; font-size: 17px; font-weight: 800; padding: 14px 0 10px 0; letter-spacing: -0.5px; }
   .custom-popup hr { border: 0; border-top: 1px solid #e2e8f0; margin: 0; }
   .popup-body { padding: 12px 16px; font-size: 14px; line-height: 1.5; }
   .popup-row { margin-bottom: 2px; }
   .popup-label { font-weight: 800; color: var(--text-dark); margin-right: 4px; }
   .popup-value { font-weight: 400; color: #334155; }
 
-  /* Cluster Style */
-  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-    background-color: rgba(30, 41, 59, 0.4);
-  }
-  .marker-cluster div {
-    background-color: #1e293b;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 50%;
-    font-size: 12px;
-  }
+  /* Cluster */
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgba(30, 41, 59, 0.4); }
+  .marker-cluster div { background-color: #1e293b; color: #fff; font-weight: bold; border-radius: 50%; font-size: 12px; }
 
-  /* Loading Bar */
-  .loader-line {
-    position: absolute; top:0; left:0; width:0%; height:4px; background:var(--primary); z-index:9999; transition:width 0.3s;
-  }
 </style>
 </head>
 <body>
-
-<div class="loader-line" id="loader"></div>
 
 <div class="ui-panel info-panel">
   <div class="info-header">
@@ -344,7 +268,7 @@
 /* === CONFIGURAÇÕES === */
 const BASE_API_URL = "https://corsproxy.io/?https%3A%2F%2Fgeoserver.semob.df.gov.br%2Fgeoserver%2Fsemob%2Fows%3Fservice%3DWFS%26version%3D1.0.0%26request%3DGetFeature%26typeName%3Dsemob%253A%25C3%259Altima%2520posi%25C3%25A7%25C3%25A3o%2520da%2520frota%26outputFormat%3Dapplication%252Fjson";
 
-// NOVAS CORES EXATAS
+// Cores Atualizadas
 const CORES = {
   "PIRACICABANA": "#449900",
   "PIONEIRA": "#ffd500",
@@ -362,94 +286,137 @@ const markers = L.markerClusterGroup({
 });
 map.addLayer(markers);
 
+// ESTADOS GLOBAIS
 let todosDados = [];
 let termosBusca = [];
 let carregando = false;
+let popupAbertoId = null; // Armazena o ID (prefixo) do popup aberto para reabrir
+let dadosTracado = null; // Armazena o JSON do traçado
+let linhasTracado = []; // Layers das linhas desenhadas
 
-/* === FUNÇÕES DE UI (Filtro e GPS) === */
-function toggleFiltro() {
-  document.getElementById('filtro-panel').classList.toggle('open');
+/* === LÓGICA DO TRAÇADO === */
+async function carregarTracado() {
+  try {
+    const res = await fetch('json/tracado_linha.json');
+    if (res.ok) dadosTracado = await res.json();
+  } catch (err) { console.warn("Erro ao carregar traçados:", err); }
+}
+carregarTracado(); // Inicia carregamento
+
+function limparTracado() {
+    linhasTracado.forEach(l => map.removeLayer(l));
+    linhasTracado = [];
 }
 
-function localizarUsuario() {
-  map.locate({setView: true, maxZoom: 16});
+function desenharTracado(cd_linha, empresa, sentidoApi) {
+    if (!dadosTracado || !cd_linha) return;
+    limparTracado();
+
+    // Filtra pelo código da linha
+    const candidatos = dadosTracado.filter(x => String(x.cd_linha) === String(cd_linha));
+    if (!candidatos.length) return;
+
+    // Tenta achar o sentido correto
+    let sentidoNome = (sentidoApi === '0' || sentidoApi === 0) ? 'IDA' : 'VOLTA';
+    let rota = candidatos.find(c => String(c.sentido_linha).toUpperCase() === sentidoNome);
+    
+    // Fallbacks
+    if (!rota) rota = candidatos.find(c => String(c.sentido_linha).toUpperCase() === 'CIRCULAR');
+    if (!rota) rota = candidatos[0];
+
+    try {
+        const coords = JSON.parse(rota.tracado_linha);
+        const cor = CORES[empresa] || '#000';
+
+        // Linha Branca (Borda)
+        const borda = L.polyline(coords, { color: 'white', weight: 6, opacity: 0.9 }).addTo(map);
+        // Linha Colorida (Miolo)
+        const miolo = L.polyline(coords, { color: cor, weight: 4, opacity: 1 }).addTo(map);
+
+        linhasTracado.push(borda, miolo);
+
+        // Ajusta zoom para ver a rota
+        map.fitBounds(miolo.getBounds(), { padding: [50, 50] });
+
+        // Clique na linha limpa ela
+        miolo.on('click', limparTracado);
+
+    } catch (e) { console.error("Erro ao desenhar rota", e); }
 }
 
-// Popup de localização corrigido com nova frase
+/* === FUNÇÕES UI === */
+function toggleFiltro() { document.getElementById('filtro-panel').classList.toggle('open'); }
+function localizarUsuario() { map.locate({setView: true, maxZoom: 16}); }
+
 map.on('locationfound', e => {
     L.circleMarker(e.latlng, {radius: 8, color: 'white', fillColor: '#2563eb', fillOpacity: 1})
-     .addTo(map)
-     .bindPopup("Você está aqui")
-     .openPopup();
+     .addTo(map).bindPopup("Você está aqui").openPopup();
 });
 
-/* === HELPERS === */
+/* === PERSISTÊNCIA DO POPUP === */
+// Quando um popup abre, salva o ID (se for de ônibus)
+map.on('popupopen', function(e) {
+    const marker = e.popup._source;
+    if (marker && marker.busData) {
+        popupAbertoId = marker.busData.prefixo;
+    }
+});
+// Quando fecha, limpa (opcional, mas bom pra evitar abrir onde não deve)
+map.on('popupclose', function(e) {
+   const marker = e.popup._source;
+    if (marker && marker.busData && popupAbertoId === marker.busData.prefixo) {
+        // Delay pequeno para permitir troca de popup sem perder ref
+        setTimeout(() => { 
+             // Só limpa se nenhum outro abriu nesse meio tempo
+             if(map._popup && map._popup._source && map._popup._source.busData.prefixo !== popupAbertoId) {
+                 popupAbertoId = null; 
+             }
+        }, 100);
+    }
+});
+
+/* === HELPERS DATA === */
 function parseDataManual(dataStr) {
     if (!dataStr) return null;
-    const partes = dataStr.split(' '); 
-    if(partes.length < 2) return null;
-    const d = partes[0].split('-');
-    const h = partes[1].split(':');
+    const p = dataStr.split(' '); if(p.length < 2) return null;
+    const d = p[0].split('-'); const h = p[1].split(':');
     return new Date(parseInt(d[0]), parseInt(d[1])-1, parseInt(d[2]), parseInt(h[0]), parseInt(h[1]), parseInt(h[2]));
 }
-
-function formatarHora(dataObj) {
-    if (!dataObj) return "--:--:--";
-    const pad = (n) => n.toString().padStart(2, '0');
-    return `${pad(dataObj.getHours())}:${pad(dataObj.getMinutes())}:${pad(dataObj.getSeconds())}`;
+function formatarHora(d) { if(!d) return "--:--:--"; return d.toLocaleTimeString('pt-BR'); }
+function formatarDataDia(d) { if(!d) return "--/--/----"; return d.toLocaleDateString('pt-BR'); }
+function calcularTempoRelativo(d) {
+    if (!d) return "Desconhecido";
+    const diff = Math.floor((new Date() - d) / 1000);
+    if (diff < 0) return "Agora";
+    if (diff < 60) return `${diff}s atrás`;
+    const m = Math.floor(diff / 60);
+    if (m < 60) return `${m}m ${diff % 60}s atrás`;
+    return `${Math.floor(m/60)}h atrás`;
 }
-
-function formatarDataDia(dataObj) {
-    if (!dataObj) return "--/--/----";
-    const pad = (n) => n.toString().padStart(2, '0');
-    return `${pad(dataObj.getDate())}/${pad(dataObj.getMonth() + 1)}/${dataObj.getFullYear()}`;
+function getEmpresa(p) {
+    const s = String(p||'');
+    if(s.startsWith('1')) return 'PIRACICABANA';
+    if(s.startsWith('2')) return 'PIONEIRA';
+    if(s.startsWith('3')) return 'URBI';
+    if(s.startsWith('4')) return 'MARECHAL';
+    if(s.startsWith('5')||s.startsWith('7')) return 'BSBUS';
+    return 'DESCONHECIDO';
 }
-
-function calcularTempoRelativo(dataObj) {
-    if (!dataObj) return "Desconhecido";
-    const agora = new Date();
-    const diffSegundos = Math.floor((agora - dataObj) / 1000);
-    if (diffSegundos < 0) return "Agora";
-    if (diffSegundos < 60) return `${diffSegundos}s atrás`;
-    const minutos = Math.floor(diffSegundos / 60);
-    if (minutos < 60) return `${minutos}m ${diffSegundos % 60}s atrás`;
-    return `${Math.floor(minutos/60)}h atrás`;
-}
-
-function getEmpresa(prefixo) {
-  const p = String(prefixo || '');
-  if(p.startsWith('1')) return 'PIRACICABANA';
-  if(p.startsWith('2')) return 'PIONEIRA';
-  if(p.startsWith('3')) return 'URBI';
-  if(p.startsWith('4')) return 'MARECHAL';
-  if(p.startsWith('5') || p.startsWith('7')) return 'BSBUS';
-  return 'DESCONHECIDO';
-}
-
-function getSentidoTexto(s) {
-    if(s === '0' || s === 0) return 'IDA';
-    if(s === '1' || s === 1) return 'VOLTA';
-    return '—';
-}
+function getSentidoTexto(s) { if(s=='0'||s===0) return 'IDA'; if(s=='1'||s===1) return 'VOLTA'; return '—'; }
 
 function criarPopup(p, empresa) {
-    const dataObj = parseDataManual(p.datalocal);
-    const dataFormatada = formatarDataDia(dataObj);
-    const horaFormatada = formatarHora(dataObj);
-    const tempoRelativo = calcularTempoRelativo(dataObj);
-    const sentidoTxt = getSentidoTexto(p.sentido);
-
+    const d = parseDataManual(p.datalocal);
     return `
         <div class="custom-popup">
             <div class="popup-header">Linha: ${p.cd_linha || 'N/A'}</div>
             <hr>
             <div class="popup-body">
-                <div class="popup-row"><span class="popup-label">Sentido:</span><span class="popup-value">${sentidoTxt}</span></div>
+                <div class="popup-row"><span class="popup-label">Sentido:</span><span class="popup-value">${getSentidoTexto(p.sentido)}</span></div>
                 <div class="popup-row"><span class="popup-label">Prefixo:</span><span class="popup-value">${p.prefixo}</span></div>
                 <div class="popup-row"><span class="popup-label">Empresa:</span><span class="popup-value">${empresa}</span></div>
-                <div class="popup-row"><span class="popup-label">Data:</span><span class="popup-value">${dataFormatada}</span></div>
-                <div class="popup-row"><span class="popup-label">Horário:</span><span class="popup-value">${horaFormatada}</span></div>
-                <div class="popup-row"><span class="popup-label">Último sinal:</span><span class="popup-value">${tempoRelativo}</span></div>
+                <div class="popup-row"><span class="popup-label">Data:</span><span class="popup-value">${formatarDataDia(d)}</span></div>
+                <div class="popup-row"><span class="popup-label">Horário:</span><span class="popup-value">${formatarHora(d)}</span></div>
+                <div class="popup-row"><span class="popup-label">Último sinal:</span><span class="popup-value">${calcularTempoRelativo(d)}</span></div>
             </div>
         </div>
     `;
@@ -459,65 +426,77 @@ function criarPopup(p, empresa) {
 function renderizarMapa() {
     markers.clearLayers();
     
-    let countOnline = 0;
-    let countOffline = 0;
+    let online=0, offline=0;
     const agora = new Date();
-
     const empresasAtivas = Array.from(document.querySelectorAll('.chk-empresa:checked')).map(cb => cb.value);
+    let markerReabrir = null;
 
-    const dadosFiltrados = todosDados.filter(feature => {
+    const layers = [];
+
+    todosDados.forEach(feature => {
         const p = feature.properties;
-        if(!p.latitude || parseFloat(p.latitude) === 0) return false;
+        if(!p.latitude || parseFloat(p.latitude) === 0) return;
 
         const empresa = getEmpresa(p.prefixo);
-        if(!empresasAtivas.includes(empresa)) return false;
+        if(!empresasAtivas.includes(empresa)) return;
 
-        const dataObj = parseDataManual(p.datalocal);
-        if(dataObj) {
-            const diffMinutos = (agora - dataObj) / 60000;
-            if(diffMinutos < 20) countOnline++; else countOffline++;
-        } else {
-            countOffline++;
-        }
+        const d = parseDataManual(p.datalocal);
+        if(d && (agora - d)/60000 < 20) online++; else offline++;
 
         if(termosBusca.length > 0) {
-            const textoBusca = (String(p.cd_linha) + " " + String(p.prefixo)).toLowerCase();
-            const match = termosBusca.some(termo => textoBusca.includes(termo.toLowerCase()));
-            if(!match) return false;
+            const txt = (String(p.cd_linha)+" "+String(p.prefixo)).toLowerCase();
+            if(!termosBusca.some(t => txt.includes(t.toLowerCase()))) return;
         }
-        return true;
-    });
 
-    document.getElementById('count-online').innerText = countOnline;
-    document.getElementById('count-offline').innerText = countOffline;
-
-    const layers = dadosFiltrados.map(feature => {
-        const p = feature.properties;
-        const empresa = getEmpresa(p.prefixo);
-        const corFundo = CORES[empresa];
-        // Usando a cor de fundo correta e texto escuro para contraste
-        const htmlIcon = `<div class="line-label" style="background-color: ${corFundo};">${p.cd_linha || p.prefixo}</div>`;
-        
+        const cor = CORES[empresa];
+        const htmlIcon = `<div class="line-label" style="background-color: ${cor};">${p.cd_linha || p.prefixo}</div>`;
         const icon = L.divIcon({ className: '', html: htmlIcon, iconSize: [40, 20], iconAnchor: [20, 10], popupAnchor: [0, -10] });
+        
         const marker = L.marker([p.latitude, p.longitude], { icon: icon });
+        
+        // Armazena dados no objeto marker para uso posterior (popup persistence)
+        marker.busData = p; 
+
         marker.bindPopup(criarPopup(p, empresa));
-        return marker;
+
+        // Evento de Clique para Traçado e Seleção
+        marker.on('click', () => {
+             popupAbertoId = p.prefixo; // Garante que saiba que este é o ativo
+             desenharTracado(p.cd_linha, empresa, p.sentido);
+        });
+
+        // Verifica se é o popup que deve estar aberto
+        if (popupAbertoId && String(p.prefixo) === String(popupAbertoId)) {
+            markerReabrir = marker;
+        }
+
+        layers.push(marker);
     });
+
+    document.getElementById('count-online').innerText = online;
+    document.getElementById('count-offline').innerText = offline;
+
     markers.addLayers(layers);
+
+    // Reabre o popup se necessário (com suporte a cluster)
+    if (markerReabrir) {
+        // Usa setTimeout para garantir que o cluster já processou a adição
+        setTimeout(() => {
+            markers.zoomToShowLayer(markerReabrir, () => {
+                markerReabrir.openPopup();
+            });
+        }, 100);
+    }
 }
 
 /* === FETCH === */
 async function atualizarDados() {
     if(carregando) return;
     carregando = true;
-    document.getElementById('loader').style.width = '70%';
-
     try {
-        const timestamp = new Date().getTime();
-        const urlFinal = `${BASE_API_URL}&_t=${timestamp}`;
-        const req = await fetch(urlFinal);
+        const url = `${BASE_API_URL}&_t=${new Date().getTime()}`;
+        const req = await fetch(url);
         const json = await req.json();
-        
         if(json.features) {
             todosDados = json.features;
             renderizarMapa();
@@ -526,17 +505,13 @@ async function atualizarDados() {
             document.getElementById('status-dot').style.backgroundColor = "#22c55e";
         }
     } catch(e) {
-        console.error("Erro rede", e);
+        console.error(e);
         document.getElementById('update-time').innerText = "Erro conexão";
         document.getElementById('status-dot').style.backgroundColor = "#ef4444";
-    } finally {
-        carregando = false;
-        document.getElementById('loader').style.width = '100%';
-        setTimeout(() => document.getElementById('loader').style.width = '0', 300);
-    }
+    } finally { carregando = false; }
 }
 
-/* === EVENTOS === */
+/* === EVENTOS UI === */
 document.querySelectorAll('.chk-empresa').forEach(c => c.addEventListener('change', renderizarMapa));
 document.getElementById('chk-todos').addEventListener('change', e => {
     document.querySelectorAll('.chk-empresa').forEach(c => c.checked = e.target.checked);
@@ -549,45 +524,32 @@ const areaTags = document.getElementById('search-tags');
 
 function atualizarTags() {
     areaTags.innerHTML = '';
-    termosBusca.forEach(termo => {
-        const el = document.createElement('div');
-        el.className = 'tag';
-        el.innerHTML = `${termo} <span>✕</span>`;
-        el.onclick = () => { termosBusca = termosBusca.filter(t => t !== termo); atualizarTags(); renderizarMapa(); };
+    termosBusca.forEach(t => {
+        const el = document.createElement('div'); el.className = 'tag';
+        el.innerHTML = `${t} <span>✕</span>`;
+        el.onclick = () => { termosBusca = termosBusca.filter(x => x !== t); atualizarTags(); renderizarMapa(); limparTracado(); };
         areaTags.appendChild(el);
     });
 }
-
-input.addEventListener('input', (e) => {
+input.addEventListener('input', e => {
     const val = e.target.value.trim().toLowerCase();
-    if(!val) { sugestoes.style.display = 'none'; return; }
-    const setOpcoes = new Set();
-    todosDados.forEach(f => {
-        if(f.properties.cd_linha) setOpcoes.add(f.properties.cd_linha);
-        if(f.properties.prefixo) setOpcoes.add(String(f.properties.prefixo));
-    });
-    const matches = Array.from(setOpcoes).filter(opt => opt.toLowerCase().includes(val)).slice(0, 8);
+    if(!val) { sugestoes.style.display='none'; return; }
+    const set = new Set();
+    todosDados.forEach(f => { if(f.properties.cd_linha) set.add(f.properties.cd_linha); if(f.properties.prefixo) set.add(String(f.properties.prefixo)); });
+    const matches = Array.from(set).filter(x => x.toLowerCase().includes(val)).slice(0, 8);
     sugestoes.innerHTML = matches.map(m => `<div class="suggestion-item">${m}</div>`).join('');
     sugestoes.style.display = matches.length ? 'block' : 'none';
 });
-
-sugestoes.addEventListener('click', (e) => {
+sugestoes.addEventListener('click', e => {
     if(e.target.classList.contains('suggestion-item')) {
-        const valor = e.target.innerText;
-        if(!termosBusca.includes(valor)) {
-            termosBusca.push(valor);
-            atualizarTags();
-            renderizarMapa();
-            setTimeout(() => { if(markers.getLayers().length > 0 && markers.getLayers().length < 50) map.fitBounds(markers.getBounds(), {padding: [50,50]}); }, 200);
-        }
-        input.value = '';
-        sugestoes.style.display = 'none';
+        const v = e.target.innerText;
+        if(!termosBusca.includes(v)) { termosBusca.push(v); atualizarTags(); renderizarMapa(); }
+        input.value=''; sugestoes.style.display='none';
     }
 });
 
-/* === START === */
 atualizarDados();
-setInterval(atualizarDados, 1000); 
+setInterval(atualizarDados, 5000);
 </script>
 </body>
 </html>
