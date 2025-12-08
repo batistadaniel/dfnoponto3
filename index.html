@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>DF No Ponto 3.0</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --primary: #2563eb;
+    --surface: rgba(255, 255, 255, 0.98);
+    --text-dark: #1e293b;
+    --text-gray: #64748b;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
+  body, html, #map { height:100%; width:100%; overflow: hidden; background: #f1f5f9; }
+
+  /* === UI GERAL === */
+  .ui-panel {
+    position: absolute;
+    z-index: 1000;
+    background: var(--surface);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 16px;
+  }
+
+  /* === PAINEL INFORMATIVO (TOPO) === */
+  .info-panel {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 94%;
+    max-width: 400px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .info-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .update-bubble {
+    background: #e2e8f0;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-gray);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .info-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-gray);
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-item b { color: var(--text-dark); }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot.green { background: #22c55e; box-shadow: 0 0 8px #22c55e80;}
+  .dot.red { background: #ef4444; }
+
+  /* === BARRA DE BUSCA === */
+  .search-wrapper {
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 94%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+  }
+
+  .search-input-box { position: relative; width: 100%; }
+  
+  #search {
+    width: 100%;
+    height: 40px;
+    padding: 0 15px 0 35px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+  }
+
+  .suggestions {
+    background: #fff;
+    border-top: 1px solid #eee;
+    max-height: 150px;
+    overflow-y: auto;
+    display: none;
+    border-radius: 0 0 12px 12px;
+  }
+  .suggestion-item {
+    padding: 8px 15px;
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .suggestion-item:active { background: #f1f5f9; }
+
+  .search-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 5px;
+  }
+  .tag {
+    background: var(--text-dark);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* === FILTROS (Sanfona no Rodapé) === */
+  .filtro-container {
+    bottom: 30px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .filtro-container.open {
+    width: 200px;
+    height: auto;
+    padding: 15px;
+    bottom: 90px;
+  }
+
+  .filtro-toggle {
+    width: 100%;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    background: var(--surface);
+  }
+  
+  .filtro-content {
+    margin-top: 40px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .filtro-container.open .filtro-content { opacity: 1; }
+
+  .filtro-container label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .filtro-container input { accent-color: var(--primary); transform: scale(1.1); }
+
+  /* === BOTÃO GPS (Meu Local) === */
+  .btn-gps {
+    bottom: 90px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .btn-gps svg { width: 24px; height: 24px; fill: #334155; }
+  .btn-gps:active { transform: scale(0.9); }
+
+  /* === MARCADORES === */
+  .line-label {
+    display:inline-block;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight:700;
+    text-align:center;
+    line-height:1.1;
+    padding:2px 5px;
+    border:2px solid #1e293b;
+    font-size:12px;
+    border-radius:8px;
+    color: #1e293b;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.9);
+  }
+
+  /* === POPUP CSS CORRIGIDO === */
+  .leaflet-popup-content-wrapper {
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  /* Restaura padding padrão para popups genéricos (como o de localização) */
+  .leaflet-popup-content {
+      margin: 15px;
+      line-height: 1.4;
+  }
+
+  /* Estilos específicos para o popup customizado de ônibus */
+  .custom-popup { 
+      color: var(--text-dark);
+      width: 220px; /* Largura fixa apenas para o popup de ônibus */
+      margin: -15px; /* Anula a margem padrão do leaflet para este popup específico */
+  }
+  .popup-header {
+    text-align: center; font-size: 17px; font-weight: 800; padding: 14px 0 10px 0; letter-spacing: -0.5px;
+  }
+  .custom-popup hr { border: 0; border-top: 1px solid #e2e8f0; margin: 0; }
+  .popup-body { padding: 12px 16px; font-size: 14px; line-height: 1.5; }
+  .popup-row { margin-bottom: 2px; }
+  .popup-label { font-weight: 800; color: var(--text-dark); margin-right: 4px; }
+  .popup-value { font-weight: 400; color: #334155; }
+
+  /* Cluster Style */
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+    background-color: rgba(30, 41, 59, 0.4);
+  }
+  .marker-cluster div {
+    background-color: #1e293b;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 50%;
+    font-size: 12px;
+  }
+
+  /* Loading Bar */
+  .loader-line {
+    position: absolute; top:0; left:0; width:0%; height:4px; background:var(--primary); z-index:9999; transition:width 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<div class="loader-line" id="loader"></div>
+
+<div class="ui-panel info-panel">
+  <div class="info-header">
+    <div class="info-title">DF No Ponto 3.0</div>
+    <div class="update-bubble">
+      <div id="status-dot" class="dot green"></div>
+      <span id="update-time">Carregando...</span>
+    </div>
+  </div>
+  <div class="info-stats">
+    <div class="stat-item"><div class="dot green"></div> <b id="count-online">0</b> Online</div>
+    <div class="stat-item"><div class="dot red"></div> <b id="count-offline">0</b> Offline</div>
+  </div>
+</div>
+
+<div class="ui-panel search-wrapper">
+  <div class="search-input-box">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" id="search" placeholder="Filtrar linha ou prefixo..." autocomplete="off"/>
+  </div>
+  <div id="suggestions" class="suggestions"></div>
+  <div id="search-tags" class="search-tags"></div>
+</div>
+
+<div class="ui-panel filtro-container" id="filtro-panel">
+  <div class="filtro-toggle" onclick="toggleFiltro()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+  </div>
+  <div class="filtro-content">
+    <div style="font-weight:800; margin-bottom:12px; color:var(--primary)">Filtros</div>
+    <label><input id="chk-todos" type="checkbox" checked> Todas</label>
+    <label><input class="chk-empresa" type="checkbox" value="PIRACICABANA" checked> Piracicabana</label>
+    <label><input class="chk-empresa" type="checkbox" value="PIONEIRA" checked> Pioneira</label>
+    <label><input class="chk-empresa" type="checkbox" value="URBI" checked> Urbi</label>
+    <label><input class="chk-empresa" type="checkbox" value="MARECHAL" checked> Marechal</label>
+    <label><input class="chk-empresa" type="checkbox" value="BSBUS" checked> BsBus</label>
+  </div>
+</div>
+
+<div class="ui-panel btn-gps" onclick="localizarUsuario()" title="Meu Local">
+  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+/* === CONFIGURAÇÕES === */
+const BASE_API_URL = "https://corsproxy.io/?https%3A%2F%2Fgeoserver.semob.df.gov.br%2Fgeoserver%2Fsemob%2Fows%3Fservice%3DWFS%26version%3D1.0.0%26request%3DGetFeature%26typeName%3Dsemob%253A%25C3%259Altima%2520posi%25C3%25A7%25C3%25A3o%2520da%2520frota%26outputFormat%3Dapplication%252Fjson";
+
+// NOVAS CORES EXATAS
+const CORES = {
+  "PIRACICABANA": "#449900",
+  "PIONEIRA": "#ffd500",
+  "URBI": "#0080ff",
+  "MARECHAL": "#ff9100",
+  "BSBUS": "#4dff00",
+  "DESCONHECIDO": "#eeeeee"
+};
+
+const map = L.map('map', {zoomControl: false}).setView([-15.7942, -47.8822], 11);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+
+const markers = L.markerClusterGroup({
+  chunkedLoading: true, maxClusterRadius: 45, disableClusteringAtZoom: 16, spiderfyOnMaxZoom: true, showCoverageOnHover: false
+});
+map.addLayer(markers);
+
+let todosDados = [];
+let termosBusca = [];
+let carregando = false;
+
+/* === FUNÇÕES DE UI (Filtro e GPS) === */
+function toggleFiltro() {
+  document.getElementById('filtro-panel').classList.toggle('open');
+}
+
+function localizarUsuario() {
+  map.locate({setView: true, maxZoom: 16});
+}
+
+// Popup de localização corrigido com nova frase
+map.on('locationfound', e => {
+    L.circleMarker(e.latlng, {radius: 8, color: 'white', fillColor: '#2563eb', fillOpacity: 1})
+     .addTo(map)
+     .bindPopup("Você está aqui")
+     .openPopup();
+});
+
+/* === HELPERS === */
+function parseDataManual(dataStr) {
+    if (!dataStr) return null;
+    const partes = dataStr.split(' '); 
+    if(partes.length < 2) return null;
+    const d = partes[0].split('-');
+    const h = partes[1].split(':');
+    return new Date(parseInt(d[0]), parseInt(d[1])-1, parseInt(d[2]), parseInt(h[0]), parseInt(h[1]), parseInt(h[2]));
+}
+
+function formatarHora(dataObj) {
+    if (!dataObj) return "--:--:--";
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${pad(dataObj.getHours())}:${pad(dataObj.getMinutes())}:${pad(dataObj.getSeconds())}`;
+}
+
+function formatarDataDia(dataObj) {
+    if (!dataObj) return "--/--/----";
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${pad(dataObj.getDate())}/${pad(dataObj.getMonth() + 1)}/${dataObj.getFullYear()}`;
+}
+
+function calcularTempoRelativo(dataObj) {
+    if (!dataObj) return "Desconhecido";
+    const agora = new Date();
+    const diffSegundos = Math.floor((agora - dataObj) / 1000);
+    if (diffSegundos < 0) return "Agora";
+    if (diffSegundos < 60) return `${diffSegundos}s atrás`;
+    const minutos = Math.floor(diffSegundos / 60);
+    if (minutos < 60) return `${minutos}m ${diffSegundos % 60}s atrás`;
+    return `${Math.floor(minutos/60)}h atrás`;
+}
+
+function getEmpresa(prefixo) {
+  const p = String(prefixo || '');
+  if(p.startsWith('1')) return 'PIRACICABANA';
+  if(p.startsWith('2')) return 'PIONEIRA';
+  if(p.startsWith('3')) return 'URBI';
+  if(p.startsWith('4')) return 'MARECHAL';
+  if(p.startsWith('5') || p.startsWith('7')) return 'BSBUS';
+  return 'DESCONHECIDO';
+}
+
+function getSentidoTexto(s) {
+    if(s === '0' || s === 0) return 'IDA';
+    if(s === '1' || s === 1) return 'VOLTA';
+    return '—';
+}
+
+function criarPopup(p, empresa) {
+    const dataObj = parseDataManual(p.datalocal);
+    const dataFormatada = formatarDataDia(dataObj);
+    const horaFormatada = formatarHora(dataObj);
+    const tempoRelativo = calcularTempoRelativo(dataObj);
+    const sentidoTxt = getSentidoTexto(p.sentido);
+
+    return `
+        <div class="custom-popup">
+            <div class="popup-header">Linha: ${p.cd_linha || 'N/A'}</div>
+            <hr>
+            <div class="popup-body">
+                <div class="popup-row"><span class="popup-label">Sentido:</span><span class="popup-value">${sentidoTxt}</span></div>
+                <div class="popup-row"><span class="popup-label">Prefixo:</span><span class="popup-value">${p.prefixo}</span></div>
+                <div class="popup-row"><span class="popup-label">Empresa:</span><span class="popup-value">${empresa}</span></div>
+                <div class="popup-row"><span class="popup-label">Data:</span><span class="popup-value">${dataFormatada}</span></div>
+                <div class="popup-row"><span class="popup-label">Horário:</span><span class="popup-value">${horaFormatada}</span></div>
+                <div class="popup-row"><span class="popup-label">Último sinal:</span><span class="popup-value">${tempoRelativo}</span></div>
+            </div>
+        </div>
+    `;
+}
+
+/* === RENDERIZAÇÃO === */
+function renderizarMapa() {
+    markers.clearLayers();
+    
+    let countOnline = 0;
+    let countOffline = 0;
+    const agora = new Date();
+
+    const empresasAtivas = Array.from(document.querySelectorAll('.chk-empresa:checked')).map(cb => cb.value);
+
+    const dadosFiltrados = todosDados.filter(feature => {
+        const p = feature.properties;
+        if(!p.latitude || parseFloat(p.latitude) === 0) return false;
+
+        const empresa = getEmpresa(p.prefixo);
+        if(!empresasAtivas.includes(empresa)) return false;
+
+        const dataObj = parseDataManual(p.datalocal);
+        if(dataObj) {
+            const diffMinutos = (agora - dataObj) / 60000;
+            if(diffMinutos < 20) countOnline++; else countOffline++;
+        } else {
+            countOffline++;
+        }
+
+        if(termosBusca.length > 0) {
+            const textoBusca = (String(p.cd_linha) + " " + String(p.prefixo)).toLowerCase();
+            const match = termosBusca.some(termo => textoBusca.includes(termo.toLowerCase()));
+            if(!match) return false;
+        }
+        return true;
+    });
+
+    document.getElementById('count-online').innerText = countOnline;
+    document.getElementById('count-offline').innerText = countOffline;
+
+    const layers = dadosFiltrados.map(feature => {
+        const p = feature.properties;
+        const empresa = getEmpresa(p.prefixo);
+        const corFundo = CORES[empresa];
+        // Usando a cor de fundo correta e texto escuro para contraste
+        const htmlIcon = `<div class="line-label" style="background-color: ${corFundo};">${p.cd_linha || p.prefixo}</div>`;
+        
+        const icon = L.divIcon({ className: '', html: htmlIcon, iconSize: [40, 20], iconAnchor: [20, 10], popupAnchor: [0, -10] });
+        const marker = L.marker([p.latitude, p.longitude], { icon: icon });
+        marker.bindPopup(criarPopup(p, empresa));
+        return marker;
+    });
+    markers.addLayers(layers);
+}
+
+/* === FETCH === */
+async function atualizarDados() {
+    if(carregando) return;
+    carregando = true;
+    document.getElementById('loader').style.width = '70%';
+
+    try {
+        const timestamp = new Date().getTime();
+        const urlFinal = `${BASE_API_URL}&_t=${timestamp}`;
+        const req = await fetch(urlFinal);
+        const json = await req.json();
+        
+        if(json.features) {
+            todosDados = json.features;
+            renderizarMapa();
+            const agora = new Date();
+            document.getElementById('update-time').innerText = `Atualizado às ${formatarHora(agora)}`;
+            document.getElementById('status-dot').style.backgroundColor = "#22c55e";
+        }
+    } catch(e) {
+        console.error("Erro rede", e);
+        document.getElementById('update-time').innerText = "Erro conexão";
+        document.getElementById('status-dot').style.backgroundColor = "#ef4444";
+    } finally {
+        carregando = false;
+        document.getElementById('loader').style.width = '100%';
+        setTimeout(() => document.getElementById('loader').style.width = '0', 300);
+    }
+}
+
+/* === EVENTOS === */
+document.querySelectorAll('.chk-empresa').forEach(c => c.addEventListener('change', renderizarMapa));
+document.getElementById('chk-todos').addEventListener('change', e => {
+    document.querySelectorAll('.chk-empresa').forEach(c => c.checked = e.target.checked);
+    renderizarMapa();
+});
+
+const input = document.getElementById('search');
+const sugestoes = document.getElementById('suggestions');
+const areaTags = document.getElementById('search-tags');
+
+function atualizarTags() {
+    areaTags.innerHTML = '';
+    termosBusca.forEach(termo => {
+        const el = document.createElement('div');
+        el.className = 'tag';
+        el.innerHTML = `${termo} <span>✕</span>`;
+        el.onclick = () => { termosBusca = termosBusca.filter(t => t !== termo); atualizarTags(); renderizarMapa(); };
+        areaTags.appendChild(el);
+    });
+}
+
+input.addEventListener('input', (e) => {
+    const val = e.target.value.trim().toLowerCase();
+    if(!val) { sugestoes.style.display = 'none'; return; }
+    const setOpcoes = new Set();
+    todosDados.forEach(f => {
+        if(f.properties.cd_linha) setOpcoes.add(f.properties.cd_linha);
+        if(f.properties.prefixo) setOpcoes.add(String(f.properties.prefixo));
+    });
+    const matches = Array.from(setOpcoes).filter(opt => opt.toLowerCase().includes(val)).slice(0, 8);
+    sugestoes.innerHTML = matches.map(m => `<div class="suggestion-item">${m}</div>`).join('');
+    sugestoes.style.display = matches.length ? 'block' : 'none';
+});
+
+sugestoes.addEventListener('click', (e) => {
+    if(e.target.classList.contains('suggestion-item')) {
+        const valor = e.target.innerText;
+        if(!termosBusca.includes(valor)) {
+            termosBusca.push(valor);
+            atualizarTags();
+            renderizarMapa();
+            setTimeout(() => { if(markers.getLayers().length > 0 && markers.getLayers().length < 50) map.fitBounds(markers.getBounds(), {padding: [50,50]}); }, 200);
+        }
+        input.value = '';
+        sugestoes.style.display = 'none';
+    }
+});
+
+/* === START === */
+atualizarDados();
+setInterval(atualizarDados, 1000); 
+</script>
+</body>
+</html>
