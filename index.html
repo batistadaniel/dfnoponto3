@@ -154,20 +154,6 @@
   }
   
   .filtro-container label { display: flex; align-items: center; gap: 8px; /*margin-bottom: 8px;*/ font-size: 12px; font-weight: 500; cursor: pointer; }
-  
-  /* === BOTÃO GPS (MODIFICADO: CANTO INFERIOR ESQUERDO) === */
-  .btn-gps {
-    position: absolute;
-    /* Usa 20px + a área segura de baixo */
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 15px;
-    width: 44px; height: 44px;
-    border-radius: 50%; background: var(--surface); z-index: 1000;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;
-  }
-  .btn-gps svg { width: 24px; height: 24px; fill: #334155; }
-  .btn-gps:active { transform: scale(0.9); }
 
   /* === MARCADORES & TOOLTIPS === */
   .line-label {
@@ -206,7 +192,6 @@
     .stats-wrapper { display: none; }
     .mobile-menu-btn { display: flex; }
     .search-wrapper { left: 60px; width: auto; right: 10px; top: 15px; }
-    .btn-gps { bottom: 20px; left: 15px; }
     /* Filtros fixos no mobile tbm no canto direito */
     .filtro-container { bottom: 20px; right: 15px; }
   }
@@ -240,9 +225,9 @@
         <div class="live-content" id="live-content">
             <div class="live-container">
                 <div class="live-fixed-header">
-                    <div style="font-weight:bold; color:#64748b; font-size:10px; margin-bottom:4px;">VEÍCULOS SEM LINHA</div>
+                    <div style="font-weight:bold; color:#64748b; font-size:12px; margin:10px 0;">VEÍCULOS SEM LINHA</div>
                     <div id="noline-stats-content">--</div>
-                    <div style="font-weight:bold; color:#64748b; font-size:10px; margin-top:8px;">TODAS AS LINHAS (QTD)</div>
+                    <div style="font-weight:bold; color:#64748b; font-size:12px; margin-top:8px;">TODAS AS LINHAS (QTD)</div>
                 </div>
                 <div class="live-scroll-area">
                     <div id="alllines-stats-content">--</div>
@@ -255,7 +240,7 @@
 <div class="search-wrapper">
   <div class="search-input-box">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    <input type="text" id="search" placeholder="Buscar..." autocomplete="off">
+    <input type="text" id="search" placeholder="Procurar linha ou prefixo..." autocomplete="off">
   </div>
   <div id="suggestions" class="suggestions"></div>
   <div id="search-tags" class="search-tags"></div>
@@ -263,9 +248,7 @@
 
 <div class="filtro-container" id="filtro-panel">
   <div class="filtro-content">
-    <!-- <div style="font-weight:800; margin-bottom:12px; color:var(--primary)">Filtros</div> -->
     <label style="color:#ef4444; font-weight:700;"><input id="chk-sem-linha" type="checkbox"> Apenas sem linha</label>
-    <!-- <div class="filtro-divider" style="height:1px; background:#e2e8f0; margin:8px 0"></div> -->
     <label><input id="chk-todos" type="checkbox" > Todas</label>
     <label><input class="chk-empresa" type="checkbox" value="PIRACICABANA" > Piracicabana</label>
     <label><input class="chk-empresa" type="checkbox" value="PIONEIRA" > Pioneira</label>
@@ -274,8 +257,6 @@
     <label><input class="chk-empresa" type="checkbox" value="BSBUS" > BsBus</label>
   </div>
 </div>
-
-<div class="btn-gps" onclick="localizarUsuario()"><svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>
 
 <div id="map"></div>
 
@@ -555,12 +536,7 @@ function toggleSidebar() {
     document.getElementById('mobileSidebar').classList.toggle('active');
     document.querySelector('.mobile-overlay').classList.toggle('active');
 }
-// NÃO PRECISA MAIS DE toggleFiltro pois está sempre aberto
-function localizarUsuario() { map.locate({setView: true, maxZoom: 16}); }
 
-map.on('locationfound', e => {
-    L.circleMarker(e.latlng, {radius: 6, color: 'white', weight: 2, fillColor: '#2563eb', fillOpacity: 1}).addTo(map).bindPopup("Você está aqui").openPopup();
-});
 map.on('click', (e) => {
     if (linhaSelecionadaClick) {
         linhaSelecionadaClick = null;
