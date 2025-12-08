@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>DF No Ponto 3.0</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -10,254 +11,271 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
 <style>
   :root {
     --primary: #2563eb;
-    --surface: rgba(255, 255, 255, 0.98);
+    --surface: rgba(255, 255, 255, 0.96);
     --text-dark: #1e293b;
     --text-gray: #64748b;
   }
 
   * { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
-  body, html, #map { height:100%; width:100%; overflow: hidden; background: #f1f5f9; }
+  
+  body, html, #map { height:100%; width:100%; overflow: hidden; background: #ddd; }
 
-  /* === UI GERAL === */
+  body {
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    margin: 0; padding: 0; /* ZERADO */
+    overflow: hidden;
+}
+  /* === GERAL UI === */
   .ui-panel {
-    position: absolute;
-    z-index: 1000;
     background: var(--surface);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 16px;
-  }
-
-  /* === PAINEL INFORMATIVO === */
-  .info-panel {
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 94%;
-    max-width: 400px;
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .info-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .info-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text-dark);
-  }
-
-  .update-bubble {
-    background: #e2e8f0;
-    padding: 6px 12px;
-    border-radius: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    padding: 10px;
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text-gray);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    color: var(--text-dark);
+    scrollbar-width: none; -ms-overflow-style: none;
   }
+  .ui-panel::-webkit-scrollbar { display: none; }
 
-  .info-stats {
-    display: flex;
-    gap: 15px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-gray);
+  /* === PAINÉIS LATERAIS (DESKTOP) === */
+  .stats-wrapper {
+    position: absolute; top: 10px; left: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+    z-index: 1000;
+    width: 220px;
+    max-height: 95vh;
+    pointer-events: none; 
   }
+  .stats-wrapper .ui-panel { pointer-events: auto; }
 
-  .stat-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .live-container { display: flex; flex-direction: column; max-height: 60vh; }
+  .live-fixed-header { flex-shrink: 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 5px; padding-bottom: 5px;}
+  .live-scroll-area { flex-grow: 1; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .live-scroll-area::-webkit-scrollbar { display: none; }
+
+  .stats-row { 
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 3px; cursor: pointer;
   }
-  .stat-item b { color: var(--text-dark); }
+  /*.stats-row:hover { background-color: #f1f5f9; }*/
+  .stats-header { font-weight: 800; font-size: 15px; margin-bottom: 8px; border-bottom: 2px solid #5a5959; padding-bottom: 4px; color: #000; }
+  
+  .company-badge {
+      color: white; padding: 2px 8px; border-radius: 12px;
+      font-weight: 700; font-size: 13px; display: inline-block;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .clickable-row { cursor: pointer; transition: opacity 0.2s; }
+  .clickable-row:active { transform: scale(0.98); }
 
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot.green { background: #22c55e; box-shadow: 0 0 8px #22c55e80;}
-  .dot.red { background: #ef4444; }
+  .live-panel-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; color: #000000; font-size: 15px; }
+  .live-panel-header .vivo { background-color: #ef4444; padding: 4px; border-radius: 8px; color: white; font-size: 13px; font-weight: 800; }
+  .live-content { display: none; margin-top: 5px; }
+  .live-content.open { display: block; }
+
+  /* === MENU MOBILE === */
+  .mobile-menu-btn {
+    position: absolute; top: 15px; left: 15px; z-index: 1100;
+    width: 40px; height: 40px; background: var(--surface);
+    border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: none; flex-direction: column; justify-content: center; align-items: center; gap: 4px; cursor: pointer;
+  }
+  .bar { width: 20px; height: 3px; background: #333; border-radius: 2px; }
+
+  .mobile-sidebar {
+    position: absolute; top: 0; left: 0; height: 100%; width: 80%;
+    background: #fff; z-index: 1200;
+    transform: translateX(-100%); transition: transform 0.3s ease;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column;
+  }
+  .mobile-sidebar.active { transform: translateX(0); }
+  .sidebar-header { padding: 20px; background: var(--primary); color: white; font-weight: 800; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .sidebar-content { padding: 15px; overflow-y: auto; flex-grow: 1; }
+  .mobile-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1150; display: none; }
+  .mobile-overlay.active { display: block; }
 
   /* === BUSCA === */
   .search-wrapper {
-    top: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 94%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    padding: 5px;
-  }
-
-  .search-input-box { position: relative; width: 100%; }
-  
-  #search {
-    width: 100%;
-    height: 40px;
-    padding: 0 15px 0 35px;
-    border: none;
-    background: transparent;
-    font-size: 14px;
-    outline: none;
-  }
-
-  .search-icon {
     position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-  }
-
-  .suggestions {
-    background: #fff;
-    border-top: 1px solid #eee;
-    max-height: 150px;
-    overflow-y: auto;
-    display: none;
-    border-radius: 0 0 12px 12px;
-  }
-  .suggestion-item {
-    padding: 8px 15px;
-    border-bottom: 1px solid #f8fafc;
-    cursor: pointer;
-    font-size: 13px;
-  }
-  .suggestion-item:active { background: #f1f5f9; }
-
-  .search-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    padding: 5px;
-  }
-  .tag {
-    background: var(--text-dark);
-    color: #fff;
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  /* === FILTROS === */
-  .filtro-container {
-    bottom: 30px;
-    right: 15px;
-    width: 48px;
-    height: 48px;
-    overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Usa 10px + o tamanho da área segura */
+    top: calc(10px + env(safe-area-inset-top)); 
+    right: 10px;
+    width: 280px;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-  }
-  .filtro-container.open { width: 200px; height: auto; padding: 15px; bottom: 90px; }
-  .filtro-toggle {
-    width: 100%; height: 48px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; position: absolute; top: 0; right: 0; z-index: 2; background: var(--surface);
-  }
-  .filtro-content { margin-top: 40px; opacity: 0; transition: opacity 0.2s; }
-  .filtro-container.open .filtro-content { opacity: 1; }
-  .filtro-container label {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-    font-size: 13px; color: #334155; cursor: pointer; font-weight: 500;
-  }
-  .filtro-container input { accent-color: var(--primary); transform: scale(1.1); }
+}
+  .search-input-box { position: relative; width: 100%; background: var(--surface); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  #search { width: 100%; height: 40px; padding: 0 15px 0 35px; border: none; background: transparent; font-size: 14px; outline: none; border-radius: 8px; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #64748b; }
+  
+  .suggestions { background: #fff; border-top: 1px solid #eee; max-height: 250px; overflow-y: auto; display: none; border-radius: 0 0 8px 8px; margin-top: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+  .suggestion-item { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 13px; }
+  .suggestion-item.selected { background: #e0f2fe; color: var(--primary); font-weight: 700; }
+  .suggestion-item:hover { background: #f1f5f9; }
+  
+  .search-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; justify-content: flex-end; }
+  .tag { background: #1e293b; color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 
-  /* === BOTÃO GPS === */
+  /* === FILTROS (MODIFICADO: ABERTO E FIXO) === */
+  .filtro-container {
+    position: absolute; 
+    /* bottom: 20px;  */
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    right: 15px; /* Canto direito */
+    width: 160px; /* Largura fixa aberto */
+    height: auto; 
+    padding: 12px;
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+    z-index: 1000; 
+    background: var(--surface);
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  /* Removemos o botão de toggle pois vai ficar fixo aberto */
+  .filtro-toggle { display: none; }
+  
+  .filtro-content { 
+      margin-top: 0; 
+      opacity: 1; 
+      display: flex; 
+    flex-direction: column; 
+    gap: 6px;
+  }
+  
+  .filtro-container label { display: flex; align-items: center; gap: 8px; /*margin-bottom: 8px;*/ font-size: 12px; font-weight: 500; cursor: pointer; }
+  
+  /* === BOTÃO GPS (MODIFICADO: CANTO INFERIOR ESQUERDO) === */
   .btn-gps {
-    bottom: 90px; right: 15px; width: 48px; height: 48px; border-radius: 50%;
+    position: absolute;
+    /* Usa 20px + a área segura de baixo */
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 15px;
+    width: 44px; height: 44px;
+    border-radius: 50%; background: var(--surface); z-index: 1000;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;
   }
   .btn-gps svg { width: 24px; height: 24px; fill: #334155; }
   .btn-gps:active { transform: scale(0.9); }
 
-  /* === MARCADORES === */
+  /* === MARCADORES & TOOLTIPS === */
   .line-label {
     display:inline-block; white-space: nowrap; cursor: pointer; font-weight:700;
-    text-align:center; line-height:1.1; padding:2px 5px;
-    border:2px solid #1e293b; font-size:12px; border-radius:8px;
-    color: #1e293b; box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    background: rgba(255,255,255,0.9);
+    text-align:center; line-height:1; padding:2px 5px;
+    border:2px solid #000; font-size:12px; border-radius:8px;
+    color: #000; box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.95);
+  }
+  .hover-tooltip {
+    background: rgba(255,255,255,0.95); color: #000; border: 1px solid rgba(0,0,0,0.2);
+    padding: 4px 8px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    font-weight: 700; font-size: 12px;
   }
 
   /* === POPUP === */
-  .leaflet-popup-content-wrapper { border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 0; overflow: hidden; }
-  .leaflet-popup-content { margin: 15px; line-height: 1.4; }
-  
-  /* Popup Customizado do Ônibus */
-  .custom-popup { color: var(--text-dark); width: 220px; margin: -15px; }
-  .popup-header { text-align: center; font-size: 17px; font-weight: 800; padding: 14px 0 10px 0; letter-spacing: -0.5px; }
+  .leaflet-popup-content-wrapper {
+    border-radius: 16px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    padding: 0; overflow: hidden;
+  }
+  .leaflet-popup-content { margin: 0; width: 200px; }
+  .custom-popup { color: var(--text-dark); }
+  .popup-header {
+    text-align: center; font-size: 16px; font-weight: 800;
+    padding: 12px 0 8px 0; letter-spacing: -0.5px;
+    background: #fff;
+  }
   .custom-popup hr { border: 0; border-top: 1px solid #e2e8f0; margin: 0; }
-  .popup-body { padding: 12px 16px; font-size: 14px; line-height: 1.5; }
+  .popup-body { padding: 10px 15px; font-size: 13px; line-height: 1.1; background: #fff; }
   .popup-row { margin-bottom: 2px; }
   .popup-label { font-weight: 800; color: var(--text-dark); margin-right: 4px; }
   .popup-value { font-weight: 400; color: #334155; }
 
-  /* Cluster */
-  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgba(30, 41, 59, 0.4); }
-  .marker-cluster div { background-color: #1e293b; color: #fff; font-weight: bold; border-radius: 50%; font-size: 12px; }
-
+  /* Responsividade */
+  @media (max-width: 768px) {
+    .stats-wrapper { display: none; }
+    .mobile-menu-btn { display: flex; }
+    .search-wrapper { left: 60px; width: auto; right: 10px; top: 15px; }
+    .btn-gps { bottom: 20px; left: 15px; }
+    /* Filtros fixos no mobile tbm no canto direito */
+    .filtro-container { bottom: 20px; right: 15px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="ui-panel info-panel">
-  <div class="info-header">
-    <div class="info-title">DF No Ponto 3.0</div>
-    <div class="update-bubble">
-      <div id="status-dot" class="dot green"></div>
-      <span id="update-time">Carregando...</span>
-    </div>
-  </div>
-  <div class="info-stats">
-    <div class="stat-item"><div class="dot green"></div> <b id="count-online">0</b> Online</div>
-    <div class="stat-item"><div class="dot red"></div> <b id="count-offline">0</b> Offline</div>
-  </div>
+<div class="mobile-menu-btn" onclick="toggleSidebar()">
+  <div class="bar"></div><div class="bar"></div><div class="bar"></div>
 </div>
 
-<div class="ui-panel search-wrapper">
+<div class="mobile-overlay" onclick="toggleSidebar()"></div>
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="sidebar-header">
+      <span>Resumo Operacional</span>
+      <span onclick="toggleSidebar()" style="cursor:pointer">✕</span>
+  </div>
+  <div class="sidebar-content" id="mobile-content-target"></div>
+</div>
+
+<div class="stats-wrapper">
+    <div class="ui-panel" id="panel-general">
+        <div class="stats-header">Total de Veículos</div>
+        <div id="simple-stats-content">Carregando...</div>
+    </div>
+    <div class="ui-panel" id="panel-live">
+        <div class="live-panel-header" onclick="toggleLivePanel()">
+            <span>Painel <span class="vivo">Ao Vivo</span></span>
+            <span class="chevron" id="live-chevron">⌄</span>
+        </div>
+        <div class="live-content" id="live-content">
+            <div class="live-container">
+                <div class="live-fixed-header">
+                    <div style="font-weight:bold; color:#64748b; font-size:10px; margin-bottom:4px;">VEÍCULOS SEM LINHA</div>
+                    <div id="noline-stats-content">--</div>
+                    <div style="font-weight:bold; color:#64748b; font-size:10px; margin-top:8px;">TODAS AS LINHAS (QTD)</div>
+                </div>
+                <div class="live-scroll-area">
+                    <div id="alllines-stats-content">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="search-wrapper">
   <div class="search-input-box">
-    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    <input type="text" id="search" placeholder="Filtrar linha ou prefixo..." autocomplete="off"/>
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" id="search" placeholder="Buscar..." autocomplete="off">
   </div>
   <div id="suggestions" class="suggestions"></div>
   <div id="search-tags" class="search-tags"></div>
 </div>
 
-<div class="ui-panel filtro-container" id="filtro-panel">
-  <div class="filtro-toggle" onclick="toggleFiltro()">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
-  </div>
+<div class="filtro-container" id="filtro-panel">
   <div class="filtro-content">
-    <div style="font-weight:800; margin-bottom:12px; color:var(--primary)">Filtros</div>
-    <label><input id="chk-todos" type="checkbox" checked> Todas</label>
-    <label><input class="chk-empresa" type="checkbox" value="PIRACICABANA" checked> Piracicabana</label>
-    <label><input class="chk-empresa" type="checkbox" value="PIONEIRA" checked> Pioneira</label>
+    <!-- <div style="font-weight:800; margin-bottom:12px; color:var(--primary)">Filtros</div> -->
+    <label style="color:#ef4444; font-weight:700;"><input id="chk-sem-linha" type="checkbox"> Apenas sem linha</label>
+    <!-- <div class="filtro-divider" style="height:1px; background:#e2e8f0; margin:8px 0"></div> -->
+    <label><input id="chk-todos" type="checkbox" > Todas</label>
+    <label><input class="chk-empresa" type="checkbox" value="PIRACICABANA" > Piracicabana</label>
+    <label><input class="chk-empresa" type="checkbox" value="PIONEIRA" > Pioneira</label>
     <label><input class="chk-empresa" type="checkbox" value="URBI" checked> Urbi</label>
     <label><input class="chk-empresa" type="checkbox" value="MARECHAL" checked> Marechal</label>
-    <label><input class="chk-empresa" type="checkbox" value="BSBUS" checked> BsBus</label>
+    <label><input class="chk-empresa" type="checkbox" value="BSBUS" > BsBus</label>
   </div>
 </div>
 
-<div class="ui-panel btn-gps" onclick="localizarUsuario()" title="Meu Local">
-  <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
-</div>
+<div class="btn-gps" onclick="localizarUsuario()"><svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0 0 13 3.06V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>
 
 <div id="map"></div>
 
@@ -265,43 +283,39 @@
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 <script>
-/* === CONFIGURAÇÕES === */
 const BASE_API_URL = "https://corsproxy.io/?https%3A%2F%2Fgeoserver.semob.df.gov.br%2Fgeoserver%2Fsemob%2Fows%3Fservice%3DWFS%26version%3D1.0.0%26request%3DGetFeature%26typeName%3Dsemob%253A%25C3%259Altima%2520posi%25C3%25A7%25C3%25A3o%2520da%2520frota%26outputFormat%3Dapplication%252Fjson";
 
-// Cores Atualizadas
 const CORES = {
-  "PIRACICABANA": "#449900",
-  "PIONEIRA": "#ffd500",
-  "URBI": "#0080ff",
-  "MARECHAL": "#ff9100",
-  "BSBUS": "#4dff00",
-  "DESCONHECIDO": "#eeeeee"
+  "PIRACICABANA": "#449900", "PIONEIRA": "#ffd500", "URBI": "#0080ff",
+  "MARECHAL": "#ff9100", "BSBUS": "#4dff00", "DESCONHECIDO": "#999999"
 };
 
 const map = L.map('map', {zoomControl: false}).setView([-15.7942, -47.8822], 11);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
-const markers = L.markerClusterGroup({
+const clusterGroup = L.markerClusterGroup({
   chunkedLoading: true, maxClusterRadius: 45, disableClusteringAtZoom: 16, spiderfyOnMaxZoom: true, showCoverageOnHover: false
 });
-map.addLayer(markers);
+const singleLayerGroup = L.layerGroup(); 
+map.addLayer(clusterGroup);
 
-// ESTADOS GLOBAIS
+const markersRegistry = {}; 
 let todosDados = [];
 let termosBusca = [];
-let carregando = false;
-let popupAbertoId = null; // Armazena o ID (prefixo) do popup aberto para reabrir
-let dadosTracado = null; // Armazena o JSON do traçado
-let linhasTracado = []; // Layers das linhas desenhadas
+let dadosTracado = null; 
+let linhasTracado = []; 
+let linhaSelecionadaClick = null; 
+let filtroEmpresaPanel = null;
+let filtroSemLinhaEmpresa = null; 
+let lastStatsUpdate = 0; // Controle para atualizar stats a cada 1 minuto
 
-/* === LÓGICA DO TRAÇADO === */
 async function carregarTracado() {
   try {
     const res = await fetch('json/tracado_linha.json');
     if (res.ok) dadosTracado = await res.json();
-  } catch (err) { console.warn("Erro ao carregar traçados:", err); }
+  } catch (err) {}
 }
-carregarTracado(); // Inicia carregamento
+carregarTracado();
 
 function limparTracado() {
     linhasTracado.forEach(l => map.removeLayer(l));
@@ -311,88 +325,250 @@ function limparTracado() {
 function desenharTracado(cd_linha, empresa, sentidoApi) {
     if (!dadosTracado || !cd_linha) return;
     limparTracado();
-
-    // Filtra pelo código da linha
     const candidatos = dadosTracado.filter(x => String(x.cd_linha) === String(cd_linha));
     if (!candidatos.length) return;
-
-    // Tenta achar o sentido correto
     let sentidoNome = (sentidoApi === '0' || sentidoApi === 0) ? 'IDA' : 'VOLTA';
-    let rota = candidatos.find(c => String(c.sentido_linha).toUpperCase() === sentidoNome);
-    
-    // Fallbacks
-    if (!rota) rota = candidatos.find(c => String(c.sentido_linha).toUpperCase() === 'CIRCULAR');
-    if (!rota) rota = candidatos[0];
+    let rota = candidatos.find(c => String(c.sentido_linha).toUpperCase() === sentidoNome) || candidatos.find(c => String(c.sentido_linha).toUpperCase() === 'CIRCULAR') || candidatos[0];
 
     try {
         const coords = JSON.parse(rota.tracado_linha);
         const cor = CORES[empresa] || '#000';
-
-        // Linha Branca (Borda)
-        const borda = L.polyline(coords, { color: 'white', weight: 6, opacity: 0.9 }).addTo(map);
-        // Linha Colorida (Miolo)
+        const borda = L.polyline(coords, { color: 'black', weight: 6, opacity: 0.9 }).addTo(map);
         const miolo = L.polyline(coords, { color: cor, weight: 4, opacity: 1 }).addTo(map);
-
         linhasTracado.push(borda, miolo);
-
-        // Ajusta zoom para ver a rota
         map.fitBounds(miolo.getBounds(), { padding: [50, 50] });
-
-        // Clique na linha limpa ela
-        miolo.on('click', limparTracado);
-
-    } catch (e) { console.error("Erro ao desenhar rota", e); }
+    } catch (e) {}
 }
 
-/* === FUNÇÕES UI === */
-function toggleFiltro() { document.getElementById('filtro-panel').classList.toggle('open'); }
+function calcularEstatisticas() {
+    const stats = { total: 0, porEmpresa: {}, semLinhaTotal: 0, semLinhaPorEmpresa: {}, linhasQtd: {} };
+    Object.keys(CORES).forEach(emp => { stats.porEmpresa[emp] = 0; stats.semLinhaPorEmpresa[emp] = 0; });
+
+    todosDados.forEach(f => {
+        const p = f.properties;
+        const emp = getEmpresa(p.prefixo);
+        stats.total++;
+        if (stats.porEmpresa[emp] !== undefined) stats.porEmpresa[emp]++;
+
+        if (!p.cd_linha || p.cd_linha.trim() === "") {
+            stats.semLinhaTotal++;
+            if (stats.semLinhaPorEmpresa[emp] !== undefined) stats.semLinhaPorEmpresa[emp]++;
+        } else {
+            if (!stats.linhasQtd[p.cd_linha]) stats.linhasQtd[p.cd_linha] = 0;
+            stats.linhasQtd[p.cd_linha]++;
+        }
+    });
+    atualizarDOMStats(stats);
+}
+
+function atualizarDOMStats(stats) {
+    const badge = (emp) => `<span class="company-badge" style="background:${CORES[emp] || '#999'}">${emp}</span>`;
+
+    let simpleHTML = `
+        <div class="stats-row clickable-row" onclick="filtrarPorEmpresaRapido(null)">
+            <span class="stats-label" style="font-weight:800">TOTAL (Limpar)</span><span class="stats-val">${stats.total}</span>
+        </div>`;
+    for (const [emp, val] of Object.entries(stats.porEmpresa)) {
+        if(emp !== 'DESCONHECIDO' && val > 0) {
+            simpleHTML += `
+            <div class="stats-row clickable-row" onclick="filtrarPorEmpresaRapido('${emp}')">
+                <span class="stats-label">${badge(emp)}</span><span class="stats-val">${val}</span>
+            </div>`;
+        }
+    }
+
+    let noLineHTML = `<div class="stats-row clickable-row" onclick="filtrarSemLinhaPorEmpresaRapido(null)"><span class="stats-label" style="font-weight:800">Total S/ Linha (Limpar)</span><span class="stats-val">${stats.semLinhaTotal}</span></div>`;
+    for (const [emp, val] of Object.entries(stats.semLinhaPorEmpresa)) {
+         if(emp !== 'DESCONHECIDO' && val > 0) {
+            noLineHTML += `
+            <div class="stats-row clickable-row" onclick="filtrarSemLinhaPorEmpresaRapido('${emp}')">
+                <span class="stats-label">${badge(emp)}</span><span class="stats-val">${val}</span>
+            </div>`;
+         }
+    }
+
+    const sortedLines = Object.entries(stats.linhasQtd).sort((a,b) => b[1] - a[1]);
+    let linesHTML = "";
+    sortedLines.forEach(([linha, qtd]) => {
+        linesHTML += `
+        <div class="stats-row clickable-row" onclick="filtrarPorLinhaRapido('${linha}')">
+            <span class="stats-label">${linha}</span><span class="stats-val">${qtd}</span>
+        </div>`;
+    });
+
+    document.getElementById('simple-stats-content').innerHTML = simpleHTML;
+    document.getElementById('noline-stats-content').innerHTML = noLineHTML;
+    document.getElementById('alllines-stats-content').innerHTML = linesHTML;
+
+    const mobileHTML = `
+        <div style="padding:10px; background:#d0e4f7; border-radius:8px; margin-bottom:15px">
+            <h4 style="margin-bottom:10px; border-bottom:2px solid var(--primary); color:var(--primary)">Geral</h4>
+            ${simpleHTML}
+        </div>
+        <div style="padding:10px; background:#d0e4f7; border-radius:8px; margin-bottom:15px">
+             <h4 style="margin-bottom:10px; border-bottom:2px solid var(--primary); color:var(--primary)">Veículos Sem Linha</h4>
+             ${noLineHTML}
+        </div>
+        <div style="padding:10px; background:#d0e4f7; border-radius:8px;">
+             <h4 style="margin-bottom:10px; border-bottom:2px solid var(--primary); color:var(--primary)">Todas as Linhas</h4>
+             ${linesHTML}
+        </div>
+    `;
+    document.getElementById('mobile-content-target').innerHTML = mobileHTML;
+}
+
+function filtrarPorEmpresaRapido(empresa) {
+    filtroEmpresaPanel = empresa; 
+    linhaSelecionadaClick = null;
+    filtroSemLinhaEmpresa = null; 
+    limparTracado();
+    renderizarMapa();
+    if(document.getElementById('mobileSidebar').classList.contains('active')) toggleSidebar();
+}
+
+function filtrarSemLinhaPorEmpresaRapido(empresa) {
+    filtroSemLinhaEmpresa = empresa; 
+    filtroEmpresaPanel = null;
+    linhaSelecionadaClick = null;
+    limparTracado();
+    renderizarMapa();
+    if(document.getElementById('mobileSidebar').classList.contains('active')) toggleSidebar();
+}
+
+function filtrarPorLinhaRapido(linha) {
+    linhaSelecionadaClick = linha;
+    filtroEmpresaPanel = null;
+    filtroSemLinhaEmpresa = null;
+    const veiculo = todosDados.find(f => f.properties.cd_linha === linha);
+    if(veiculo) {
+        const emp = getEmpresa(veiculo.properties.prefixo);
+        desenharTracado(linha, emp, veiculo.properties.sentido);
+    }
+    renderizarMapa();
+    if(document.getElementById('mobileSidebar').classList.contains('active')) toggleSidebar();
+}
+
+function renderizarMapa() {
+    const chkEmpresas = Array.from(document.querySelectorAll('.chk-empresa:checked')).map(cb => cb.value);
+    const chkSemLinha = document.getElementById('chk-sem-linha').checked;
+
+    let usarCluster = true;
+    
+    if ((chkSemLinha || filtroSemLinhaEmpresa) && (chkEmpresas.length === 1 || filtroSemLinhaEmpresa)) usarCluster = false;
+    if (linhaSelecionadaClick) usarCluster = false;
+
+    const targetGroup = usarCluster ? clusterGroup : singleLayerGroup;
+    const oldGroup = usarCluster ? singleLayerGroup : clusterGroup;
+    if (map.hasLayer(oldGroup)) {
+        map.removeLayer(oldGroup);
+        map.addLayer(targetGroup);
+        oldGroup.clearLayers();
+        targetGroup.clearLayers();
+        for (let k in markersRegistry) delete markersRegistry[k];
+    }
+
+    const validIds = new Set();
+
+    todosDados.forEach(feature => {
+        const p = feature.properties;
+        if(!p.latitude || parseFloat(p.latitude) === 0) return;
+
+        if (linhaSelecionadaClick) {
+            if (String(p.cd_linha) !== String(linhaSelecionadaClick)) return;
+        } 
+        else if (filtroSemLinhaEmpresa) {
+            if (filtroSemLinhaEmpresa !== null && getEmpresa(p.prefixo) !== filtroSemLinhaEmpresa) return;
+            if (p.cd_linha && p.cd_linha.trim() !== "") return;
+        }
+        else if (filtroEmpresaPanel) {
+            if (getEmpresa(p.prefixo) !== filtroEmpresaPanel) return;
+        }
+        else {
+            const empresa = getEmpresa(p.prefixo);
+            if(!chkEmpresas.includes(empresa)) return;
+            if (chkSemLinha && p.cd_linha && p.cd_linha.trim() !== "") return;
+            if(termosBusca.length > 0) {
+                const txt = (String(p.cd_linha)+" "+String(p.prefixo)).toLowerCase();
+                if(!termosBusca.some(t => txt.includes(t.toLowerCase()))) return;
+            }
+        }
+
+        const id = String(p.prefixo);
+        validIds.add(id);
+
+        const lat = parseFloat(p.latitude);
+        const lng = parseFloat(p.longitude);
+        const empresa = getEmpresa(p.prefixo);
+        const cor = CORES[empresa];
+        const htmlIcon = `<div class="line-label" style="background-color: ${cor};">${p.cd_linha || p.prefixo}</div>`;
+        const sentidoTxt = getSentidoTexto(p.sentido);
+        const tooltipText = p.prefixo ? `${p.prefixo} | ${empresa} | ${sentidoTxt}` : empresa;
+
+        if (markersRegistry[id]) {
+            const marker = markersRegistry[id];
+            marker.setLatLng([lat, lng]);
+            
+            const popupContent = criarPopup(p, empresa);
+            if (marker.getPopup() && marker.getPopup().isOpen()) {
+                marker.getPopup().setContent(popupContent);
+            } else {
+                marker.setPopupContent(popupContent);
+            }
+
+            if (!targetGroup.hasLayer(marker)) targetGroup.addLayer(marker);
+
+        } else {
+            const icon = L.divIcon({ className: '', html: htmlIcon, iconSize: [40, 20], iconAnchor: [20, 10], popupAnchor: [0, -10] });
+            const marker = L.marker([lat, lng], { icon: icon });
+            
+            marker.bindPopup(criarPopup(p, empresa));
+            
+            marker.bindTooltip(tooltipText, {
+                direction: 'top', offset: [0, -15], className: 'hover-tooltip'
+            });
+
+            marker.on('click', (e) => {
+                 L.DomEvent.stopPropagation(e); 
+                 linhaSelecionadaClick = p.cd_linha; 
+                 desenharTracado(p.cd_linha, empresa, p.sentido);
+                 renderizarMapa(); 
+            });
+
+            targetGroup.addLayer(marker);
+            markersRegistry[id] = marker;
+        }
+    });
+
+    for (let id in markersRegistry) {
+        if (!validIds.has(id)) {
+            targetGroup.removeLayer(markersRegistry[id]);
+            delete markersRegistry[id];
+        }
+    }
+}
+
+function toggleLivePanel() {
+    document.getElementById('live-content').classList.toggle('open');
+    document.getElementById('live-chevron').classList.toggle('rotate');
+}
+function toggleSidebar() {
+    document.getElementById('mobileSidebar').classList.toggle('active');
+    document.querySelector('.mobile-overlay').classList.toggle('active');
+}
+// NÃO PRECISA MAIS DE toggleFiltro pois está sempre aberto
 function localizarUsuario() { map.locate({setView: true, maxZoom: 16}); }
 
 map.on('locationfound', e => {
-    L.circleMarker(e.latlng, {radius: 8, color: 'white', fillColor: '#2563eb', fillOpacity: 1})
-     .addTo(map).bindPopup("Você está aqui").openPopup();
+    L.circleMarker(e.latlng, {radius: 6, color: 'white', weight: 2, fillColor: '#2563eb', fillOpacity: 1}).addTo(map).bindPopup("Você está aqui").openPopup();
 });
-
-/* === PERSISTÊNCIA DO POPUP === */
-// Quando um popup abre, salva o ID (se for de ônibus)
-map.on('popupopen', function(e) {
-    const marker = e.popup._source;
-    if (marker && marker.busData) {
-        popupAbertoId = marker.busData.prefixo;
-    }
-});
-// Quando fecha, limpa (opcional, mas bom pra evitar abrir onde não deve)
-map.on('popupclose', function(e) {
-   const marker = e.popup._source;
-    if (marker && marker.busData && popupAbertoId === marker.busData.prefixo) {
-        // Delay pequeno para permitir troca de popup sem perder ref
-        setTimeout(() => { 
-             // Só limpa se nenhum outro abriu nesse meio tempo
-             if(map._popup && map._popup._source && map._popup._source.busData.prefixo !== popupAbertoId) {
-                 popupAbertoId = null; 
-             }
-        }, 100);
+map.on('click', (e) => {
+    if (linhaSelecionadaClick) {
+        linhaSelecionadaClick = null;
+        limparTracado();
+        renderizarMapa();
     }
 });
 
-/* === HELPERS DATA === */
-function parseDataManual(dataStr) {
-    if (!dataStr) return null;
-    const p = dataStr.split(' '); if(p.length < 2) return null;
-    const d = p[0].split('-'); const h = p[1].split(':');
-    return new Date(parseInt(d[0]), parseInt(d[1])-1, parseInt(d[2]), parseInt(h[0]), parseInt(h[1]), parseInt(h[2]));
-}
-function formatarHora(d) { if(!d) return "--:--:--"; return d.toLocaleTimeString('pt-BR'); }
-function formatarDataDia(d) { if(!d) return "--/--/----"; return d.toLocaleDateString('pt-BR'); }
-function calcularTempoRelativo(d) {
-    if (!d) return "Desconhecido";
-    const diff = Math.floor((new Date() - d) / 1000);
-    if (diff < 0) return "Agora";
-    if (diff < 60) return `${diff}s atrás`;
-    const m = Math.floor(diff / 60);
-    if (m < 60) return `${m}m ${diff % 60}s atrás`;
-    return `${Math.floor(m/60)}h atrás`;
-}
 function getEmpresa(p) {
     const s = String(p||'');
     if(s.startsWith('1')) return 'PIRACICABANA';
@@ -404,8 +580,49 @@ function getEmpresa(p) {
 }
 function getSentidoTexto(s) { if(s=='0'||s===0) return 'IDA'; if(s=='1'||s===1) return 'VOLTA'; return '—'; }
 
+function parseDataManual(dataStr) {
+    if (!dataStr) return null;
+    const p = dataStr.split(' '); if(p.length < 2) return null;
+    const d = p[0].split('-'); const h = p[1].split(':');
+    return new Date(parseInt(d[0]), parseInt(d[1])-1, parseInt(d[2]), parseInt(h[0]), parseInt(h[1]), parseInt(h[2]));
+}
+
+// === FORMATAÇÃO DE TEMPO CORRIGIDA ===
+function calcularTempoRelativo(d) {
+    if (!d) return "Desconhecido";
+    const diffMs = new Date() - d;
+    const diffSec = Math.floor(diffMs / 1000);
+
+    if (diffSec < 60) return `${diffSec}s atrás`;
+    
+    if (diffSec < 3600) {
+        const m = Math.floor(diffSec / 60);
+        const s = diffSec % 60;
+        return `${m}m ${s}s atrás`;
+    }
+    
+    if (diffSec < 86400) {
+        const h = Math.floor(diffSec / 3600);
+        const m = Math.floor((diffSec % 3600) / 60);
+        const s = diffSec % 60;
+        // Quebra de linha se tiver horas
+        return `${h}h ${m}m<br>${s}s atrás`;
+    }
+    
+    // Mais de 24h
+    const days = Math.floor(diffSec / 86400);
+    const h = Math.floor((diffSec % 86400) / 3600);
+    const m = Math.floor((diffSec % 3600) / 60);
+    const s = diffSec % 60;
+    return `${days}d ${h}h<br>${m}m ${s}s atrás`;
+}
+
 function criarPopup(p, empresa) {
     const d = parseDataManual(p.datalocal);
+    const dataFormatada = d ? d.toLocaleDateString('pt-BR') : '--/--/----';
+    const horaFormatada = d ? d.toLocaleTimeString('pt-BR') : '--:--:--';
+    const tempoRelativo = calcularTempoRelativo(d); // Usando a nova função
+
     return `
         <div class="custom-popup">
             <div class="popup-header">Linha: ${p.cd_linha || 'N/A'}</div>
@@ -414,142 +631,110 @@ function criarPopup(p, empresa) {
                 <div class="popup-row"><span class="popup-label">Sentido:</span><span class="popup-value">${getSentidoTexto(p.sentido)}</span></div>
                 <div class="popup-row"><span class="popup-label">Prefixo:</span><span class="popup-value">${p.prefixo}</span></div>
                 <div class="popup-row"><span class="popup-label">Empresa:</span><span class="popup-value">${empresa}</span></div>
-                <div class="popup-row"><span class="popup-label">Data:</span><span class="popup-value">${formatarDataDia(d)}</span></div>
-                <div class="popup-row"><span class="popup-label">Horário:</span><span class="popup-value">${formatarHora(d)}</span></div>
-                <div class="popup-row"><span class="popup-label">Último sinal:</span><span class="popup-value">${calcularTempoRelativo(d)}</span></div>
+                <div class="popup-row"><span class="popup-label">Data:</span><span class="popup-value">${dataFormatada}</span></div>
+                <div class="popup-row"><span class="popup-label">Horário:</span><span class="popup-value">${horaFormatada}</span></div>
+                <div class="popup-row"><span class="popup-label">Último sinal:</span><span class="popup-value">${tempoRelativo}</span></div>
             </div>
         </div>
     `;
 }
 
-/* === RENDERIZAÇÃO === */
-function renderizarMapa() {
-    markers.clearLayers();
+/* === BUSCA COM TECLADO === */
+const input = document.getElementById('search');
+const sugestoes = document.getElementById('suggestions');
+let currentFocus = -1;
+
+input.addEventListener('input', e => {
+    const val = e.target.value.trim().toLowerCase();
+    if(!val) { sugestoes.style.display='none'; return; }
+    const set = new Set();
+    todosDados.forEach(f => { if(f.properties.cd_linha) set.add(f.properties.cd_linha); if(f.properties.prefixo) set.add(String(f.properties.prefixo)); });
+    const matches = Array.from(set).filter(x => x.toLowerCase().includes(val)).sort();
     
-    let online=0, offline=0;
-    const agora = new Date();
-    const empresasAtivas = Array.from(document.querySelectorAll('.chk-empresa:checked')).map(cb => cb.value);
-    let markerReabrir = null;
+    sugestoes.innerHTML = matches.map(m => `<div class="suggestion-item">${m}</div>`).join('');
+    sugestoes.style.display = matches.length ? 'block' : 'none';
+    currentFocus = -1;
+});
 
-    const layers = [];
-
-    todosDados.forEach(feature => {
-        const p = feature.properties;
-        if(!p.latitude || parseFloat(p.latitude) === 0) return;
-
-        const empresa = getEmpresa(p.prefixo);
-        if(!empresasAtivas.includes(empresa)) return;
-
-        const d = parseDataManual(p.datalocal);
-        if(d && (agora - d)/60000 < 20) online++; else offline++;
-
-        if(termosBusca.length > 0) {
-            const txt = (String(p.cd_linha)+" "+String(p.prefixo)).toLowerCase();
-            if(!termosBusca.some(t => txt.includes(t.toLowerCase()))) return;
-        }
-
-        const cor = CORES[empresa];
-        const htmlIcon = `<div class="line-label" style="background-color: ${cor};">${p.cd_linha || p.prefixo}</div>`;
-        const icon = L.divIcon({ className: '', html: htmlIcon, iconSize: [40, 20], iconAnchor: [20, 10], popupAnchor: [0, -10] });
-        
-        const marker = L.marker([p.latitude, p.longitude], { icon: icon });
-        
-        // Armazena dados no objeto marker para uso posterior (popup persistence)
-        marker.busData = p; 
-
-        marker.bindPopup(criarPopup(p, empresa));
-
-        // Evento de Clique para Traçado e Seleção
-        marker.on('click', () => {
-             popupAbertoId = p.prefixo; // Garante que saiba que este é o ativo
-             desenharTracado(p.cd_linha, empresa, p.sentido);
-        });
-
-        // Verifica se é o popup que deve estar aberto
-        if (popupAbertoId && String(p.prefixo) === String(popupAbertoId)) {
-            markerReabrir = marker;
-        }
-
-        layers.push(marker);
-    });
-
-    document.getElementById('count-online').innerText = online;
-    document.getElementById('count-offline').innerText = offline;
-
-    markers.addLayers(layers);
-
-    // Reabre o popup se necessário (com suporte a cluster)
-    if (markerReabrir) {
-        // Usa setTimeout para garantir que o cluster já processou a adição
-        setTimeout(() => {
-            markers.zoomToShowLayer(markerReabrir, () => {
-                markerReabrir.openPopup();
-            });
-        }, 100);
+input.addEventListener('keydown', function(e) {
+    let items = sugestoes.getElementsByClassName('suggestion-item');
+    if (e.key === 'ArrowDown') { 
+        currentFocus++; addActive(items); if(items[currentFocus]) items[currentFocus].scrollIntoView({block: 'nearest'}); 
     }
-}
+    else if (e.key === 'ArrowUp') { 
+        currentFocus--; addActive(items); if(items[currentFocus]) items[currentFocus].scrollIntoView({block: 'nearest'}); 
+    }
+    else if (e.key === 'Enter') { 
+        e.preventDefault(); 
+        if (currentFocus > -1 && items[currentFocus]) items[currentFocus].click();
+        else if (items.length > 0) items[0].click(); 
+    }
+    else if (e.key === 'Tab') {
+         if (sugestoes.style.display === 'block') {
+             e.preventDefault();
+             if (currentFocus > -1 && items[currentFocus]) items[currentFocus].click();
+             else if (items.length > 0) items[0].click();
+         }
+    }
+});
 
-/* === FETCH === */
+function addActive(x) { if (!x) return false; for (let i=0; i<x.length; i++) x[i].classList.remove("selected"); if (currentFocus >= x.length) currentFocus=0; if (currentFocus < 0) currentFocus=(x.length-1); x[currentFocus].classList.add("selected"); }
+
+sugestoes.addEventListener('click', e => {
+    if(e.target.classList.contains('suggestion-item')) {
+        const v = e.target.innerText;
+        if(!termosBusca.includes(v)) {
+            termosBusca.push(v);
+            const areaTags = document.getElementById('search-tags');
+            const el = document.createElement('div'); el.className = 'tag';
+            el.innerHTML = `${v} <span>✕</span>`;
+            el.onclick = () => { termosBusca = termosBusca.filter(x => x !== v); el.remove(); renderizarMapa(); linhaSelecionadaClick = null; limparTracado(); };
+            areaTags.appendChild(el);
+            renderizarMapa();
+            linhaSelecionadaClick = null; limparTracado(); 
+        }
+        input.value=''; sugestoes.style.display='none'; input.focus();
+    }
+});
+
 async function atualizarDados() {
-    if(carregando) return;
-    carregando = true;
     try {
         const url = `${BASE_API_URL}&_t=${new Date().getTime()}`;
         const req = await fetch(url);
         const json = await req.json();
         if(json.features) {
             todosDados = json.features;
-            renderizarMapa();
-            const agora = new Date();
-            document.getElementById('update-time').innerText = `Atualizado às ${formatarHora(agora)}`;
-            document.getElementById('status-dot').style.backgroundColor = "#22c55e";
+            
+            // LÓGICA DE ATUALIZAÇÃO DO RESUMO OPERACIONAL (A CADA 1 MIN)
+            const now = Date.now();
+            if (now - lastStatsUpdate > 1000) {
+                calcularEstatisticas();
+                lastStatsUpdate = now;
+            }
+            // Mapa sempre atualiza (a cada 1s)
+            renderizarMapa(); 
         }
-    } catch(e) {
-        console.error(e);
-        document.getElementById('update-time').innerText = "Erro conexão";
-        document.getElementById('status-dot').style.backgroundColor = "#ef4444";
-    } finally { carregando = false; }
+    } catch(e) {}
 }
-
-/* === EVENTOS UI === */
-document.querySelectorAll('.chk-empresa').forEach(c => c.addEventListener('change', renderizarMapa));
-document.getElementById('chk-todos').addEventListener('change', e => {
-    document.querySelectorAll('.chk-empresa').forEach(c => c.checked = e.target.checked);
-    renderizarMapa();
-});
-
-const input = document.getElementById('search');
-const sugestoes = document.getElementById('suggestions');
-const areaTags = document.getElementById('search-tags');
-
-function atualizarTags() {
-    areaTags.innerHTML = '';
-    termosBusca.forEach(t => {
-        const el = document.createElement('div'); el.className = 'tag';
-        el.innerHTML = `${t} <span>✕</span>`;
-        el.onclick = () => { termosBusca = termosBusca.filter(x => x !== t); atualizarTags(); renderizarMapa(); limparTracado(); };
-        areaTags.appendChild(el);
-    });
-}
-input.addEventListener('input', e => {
-    const val = e.target.value.trim().toLowerCase();
-    if(!val) { sugestoes.style.display='none'; return; }
-    const set = new Set();
-    todosDados.forEach(f => { if(f.properties.cd_linha) set.add(f.properties.cd_linha); if(f.properties.prefixo) set.add(String(f.properties.prefixo)); });
-    const matches = Array.from(set).filter(x => x.toLowerCase().includes(val)).slice(0, 8);
-    sugestoes.innerHTML = matches.map(m => `<div class="suggestion-item">${m}</div>`).join('');
-    sugestoes.style.display = matches.length ? 'block' : 'none';
-});
-sugestoes.addEventListener('click', e => {
-    if(e.target.classList.contains('suggestion-item')) {
-        const v = e.target.innerText;
-        if(!termosBusca.includes(v)) { termosBusca.push(v); atualizarTags(); renderizarMapa(); }
-        input.value=''; sugestoes.style.display='none';
-    }
-});
-
 atualizarDados();
-setInterval(atualizarDados, 5000);
+setInterval(atualizarDados, 1000);
+
+document.querySelectorAll('.chk-empresa, #chk-sem-linha, #chk-todos').forEach(el => {
+    el.addEventListener('change', (e) => {
+        if(e.target.id === 'chk-todos') document.querySelectorAll('.chk-empresa').forEach(c => c.checked = e.target.checked);
+        renderizarMapa();
+    });
+});
+
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registrado!', reg))
+        .catch(err => console.log('Falha ao registrar:', err));
+    });
+  }
 </script>
 </body>
 </html>
